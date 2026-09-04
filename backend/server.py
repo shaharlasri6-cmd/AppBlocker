@@ -119,6 +119,23 @@ class H(BaseHTTPRequestHandler):
                 if not c.execute('SELECT 1 FROM devices WHERE id=?',(did,)).fetchone():return self.fail('unknown device',404)
                 c.execute('UPDATE devices SET name=? WHERE id=?',(name,did))
             return self.send_json({'ok':True,'name':name})
+        if path=='/api/admin/device/delete':
+            if not self.admin():return self.fail('unauthorized',401)
+            did=str(data.get('device_id','')).strip()
+            if not did:return self.fail('invalid device id')
+            with db() as c:
+                row=c.execute('SELECT name FROM devices WHERE id=?',(did,)).fetchone()
+                if not row:return self.fail('unknown device',404)
+                name=row['name']
+                c.execute('DELETE FROM usage WHERE device_id=?',(did,))
+                c.execute('DELETE FROM pairings WHERE device_id=?',(did,))
+                c.execute('DELETE FROM devices WHERE id=?',(did,))
+            media=DATA/'media'
+            if media.is_dir():
+                for f in media.glob(did+'-*'):
+                    try:f.unlink()
+                    except OSError:pass
+            return self.send_json({'ok':True,'deleted_device_id':did,'name':name})
         if path=='/api/admin/policy':
             if not self.admin():return self.fail('unauthorized',401)
             did,pkg,mode=str(data.get('device_id','')),str(data.get('package_name','')),str(data.get('mode','UNRESTRICTED'))
@@ -173,7 +190,7 @@ class H(BaseHTTPRequestHandler):
         with db() as c:
             ds=[dict(r) for r in c.execute('SELECT id,name,manufacturer,model,android_version,last_seen,protection_status,policy_version,tamper_json FROM devices ORDER BY paired_at DESC')]
             for d in ds:
-                d['tamper']=json.loads(d.pop('tamper_json') or '[]'); d['apps']=[dict(r) for r in c.execute('SELECT a.package_name,a.app_name,a.icon_b64,a.system_app,COALESCE(p.mode,"UNRESTRICTED") mode,p.allowance_minutes,p.window_minutes,p.window_anchor FROM apps a LEFT JOIN policies p ON p.device_id=a.device_id AND p.package_name=a.package_name WHERE a.device_id=? ORDER BY lower(a.app_name)',(d['id'],))]; s=c.execute('SELECT * FROM settings WHERE device_id=?',(d['id'],)).fetchone(); raw_settings=dict(s) if s else {}; raw_settings.pop('uninstall_pass_salt',None); raw_settings.pop('uninstall_pass_hash',None); d['settings']=raw_settings; d['usage']=[dict(r) for r in c.execute('SELECT package_name,SUM(seconds) seconds FROM usage WHERE device_id=? AND bucket_start>=? GROUP BY package_name',(d['id'],now()-86400))]
+                d['tamper']=json.loads(d.pop('tamper_json') or '[]'); d['apps']=[dict(r) for r in c.execute('SELECT a.package_name,a.app_name,a.icon_b64,a.system_app,COALESCE(p.mode,"UNRESTRICTED") mode,p.allowance_minutes,p.window_minutes,p.window_anchor FROM apps a LEFT JOIN policies p ON p.device_id=a.device_id AND p.package_name=a.package_name WHERE a.device_id=? ORDER BY lower(a.app_name)',(d['id'],))]; s=c.execute('SELECT * FROM settings WHERE device_id=?',(d['id'],)).fetchone(); raw_settings=dict(s) if s else {}; raw_settings.pop('uninstall_pass_salt',None); raw_settings.pop('uninstall_pass_hash',None); d['settings']=raw_settings; d['usage']=[dict(r) for r in c.execute('SELECT package_name,SUM(seconds) seconds FROM usage WHERE device_id=? AND bucket_start>=? GROUP BY package_name',(d['id'],now()-86400))]; d['connection_alert']=bool(d.get('last_seen') and now()-int(d['last_seen'])>=120)
         return self.send_json({'devices':ds,'server_time':now()})
     def static(self,path):
         if path=='/':path='/index.html'

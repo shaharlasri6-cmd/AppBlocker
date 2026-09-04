@@ -39,3 +39,18 @@
 - Added android-actions/setup-android before installing SDK 35 packages.
 - Updated checkout/setup-java actions to current major versions.
 - Kept existing signing secrets and release flow unchanged.
+
+## v1.3.2 - Dashboard device lifecycle controls
+- Added a dashboard connection-loss alert when a paired phone has not synchronized for 2 minutes.
+- The alert explains that the app may have been removed/stopped, or that the phone/server connection may be unavailable.
+- Added automatic dashboard refresh every 15 seconds so connection-loss alerts appear without manual refresh.
+- Added an authenticated Delete device action in Device settings.
+- Deleting a device removes its server-side app inventory, policies, usage records, pairing records, settings, and uploaded block images.
+- Deleting a device from the dashboard does not uninstall anything from the phone.
+- Android time-limit tracking now uses a reliable foreground-app resolver based on UsageEvents with Accessibility fallback.
+- Accessibility window noise no longer overwrites the timed foreground application.
+- Time-limit reached notifications are now independent of warning thresholds.
+- Warning notifications use a fresh high-importance channel and no longer fire several thresholds at once.
+- The phone status page now shows whether notification permission is enabled.
+- Notification permission problems are reported in the dashboard protection log.
+- Android versionCode 11 / versionName 1.3.2.

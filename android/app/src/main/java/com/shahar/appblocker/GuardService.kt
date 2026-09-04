@@ -42,6 +42,7 @@ class GuardService : Service() {
                 val issues = mutableListOf<String>()
                 if (!AppChecks.accessibilityEnabled(this)) issues += "Accessibility service is disabled"
                 if (!AppChecks.usageAccess(this)) issues += "Usage access is missing"
+                if (!AppChecks.notificationsEnabled(this)) issues += "Notification permission is disabled"
                 api.post("/api/device/status", JSONObject()
                     .put("protection_status", if (issues.isEmpty()) "healthy" else "degraded")
                     .put("tamper", JSONArray(issues)))

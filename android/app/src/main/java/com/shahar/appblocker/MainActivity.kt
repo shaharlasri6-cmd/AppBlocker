@@ -149,6 +149,7 @@ class MainActivity : Activity() {
         root.addView(txt("Protection", 18f, textColor, true), LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(8); bottomMargin=dp(10) })
         root.addView(statusCard("Accessibility", AppChecks.accessibilityEnabled(this), "Detects foreground applications and enforces blocks.", "Open Accessibility") { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) })
         root.addView(statusCard("Usage access", AppChecks.usageAccess(this), "Supports application usage and time-limit tracking.", "Open Usage Access") { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) })
+        root.addView(statusCard("Notifications", AppChecks.notificationsEnabled(this), "Required for time-limit warning notifications.", "Open Notifications") { startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)) })
 
         val instructions = card(); instructions.addView(txt("Phone reliability", 17f, textColor, true)); instructions.addView(txt("These shortcuts help keep the management service alive in the background on your phone.", 12f, muted))
         for (s in OemCompat.provider().steps(this)) {
