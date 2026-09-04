@@ -1,0 +1,18 @@
+data/
+*.db
+*.apk
+.gradle/
+android/local.properties
+android/app/build/
+
+# Local AppBlocker update backups
+.update-backup-*/
+.update-backups/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Kotlin/Gradle local cache and error logs
+android/.kotlin/
+*.log

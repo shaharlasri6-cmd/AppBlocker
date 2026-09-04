@@ -1,0 +1,6 @@
+package com.shahar.appblocker
+import android.app.Activity
+import android.os.Bundle
+import android.view.Gravity
+import android.widget.*
+class BlockActivity:Activity(){override fun onCreate(b:Bundle?){super.onCreate(b);showBlock()}override fun onResume(){super.onResume();showBlock()}private fun showBlock(){val reason=intent.getStringExtra("reason")?:"general";val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER;setPadding(40,40,40,40)};val img=ImageView(this).apply{adjustViewBounds=true;maxHeight=resources.displayMetrics.heightPixels/2};val s=PolicyStore(this).settings();val path=if(reason=="time")s.optString("time_image") else s.optString("general_image");val local=getSharedPreferences("images",MODE_PRIVATE).getString(path,null);if(local!=null)img.setImageURI(android.net.Uri.parse(local));box.addView(img,LinearLayout.LayoutParams(-1,0,1f));box.addView(TextView(this).apply{text=if(reason=="time")"Time limit reached" else "Application blocked";textSize=28f;gravity=Gravity.CENTER},LinearLayout.LayoutParams(-1,-2));setContentView(box)}@Deprecated("Deprecated in Java")override fun onBackPressed(){moveTaskToBack(true)}}
