@@ -4,3 +4,10 @@
 .connectionAlert{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 18px;padding:16px 18px;border:1px solid rgba(239,68,68,.35);border-radius:14px;background:rgba(239,68,68,.09);box-shadow:0 10px 30px rgba(127,29,29,.08)}
 .connectionAlert b{display:block;margin-bottom:4px}.connectionAlert>div>div{font-size:13px;line-height:1.45;opacity:.82}
 .dangerPanel{border-color:rgba(239,68,68,.28)!important}.dangerButton{border:1px solid rgba(239,68,68,.5);background:rgba(239,68,68,.1);color:#dc2626;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.dangerButton:hover{background:rgba(239,68,68,.17);transform:translateY(-1px)}
+
+/* v1.3.2a dashboard hotfix */
+.connectionAlert{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 18px;padding:16px 18px;border:1px solid rgba(239,68,68,.38);border-radius:14px;background:rgba(239,68,68,.10)}
+.connectionAlert b{display:block;margin-bottom:4px}.connectionAlert>div>div{font-size:13px;line-height:1.45;opacity:.82}
+.dangerPanel{border-color:rgba(239,68,68,.30)!important}
+.dangerButton{border:1px solid rgba(239,68,68,.55);background:rgba(239,68,68,.12);color:#dc2626;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;transition:.16s ease}
+.dangerButton:hover{background:rgba(239,68,68,.20);transform:translateY(-1px)}
