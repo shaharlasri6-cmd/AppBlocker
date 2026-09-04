@@ -1,34 +1,70 @@
 package com.shahar.appblocker
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import java.io.File
+import java.lang.ref.WeakReference
 
 class BlockActivity : Activity() {
+    companion object {
+        private var current = WeakReference<BlockActivity>(null)
+
+        fun closeActive() {
+            current.get()?.let { activity ->
+                if (!activity.isFinishing && !activity.isDestroyed) {
+                    activity.finishAndRemoveTask()
+                }
+            }
+            current.clear()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        current = WeakReference(this)
         showBlock()
     }
 
     override fun onResume() {
         super.onResume()
+        current = WeakReference(this)
         showBlock()
+    }
+
+    override fun onDestroy() {
+        if (current.get() === this) {
+            current.clear()
+        }
+        super.onDestroy()
     }
 
     private fun showBlock() {
         val target = intent.getStringExtra("pkg")
+
         if (target.isNullOrBlank() || target == packageName) {
-            finish()
+            finishAndRemoveTask()
             return
         }
 
         val reason = intent.getStringExtra("reason") ?: "general"
         val store = PolicyStore(this)
+        val rule = store.rule(target)
+
+        val stillValid =
+            (reason == "general" && rule.mode == "BLOCKED") ||
+                (reason == "time" && rule.mode == "TIME_LIMITED")
+
+        if (!stillValid) {
+            finishAndRemoveTask()
+            return
+        }
 
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -78,11 +114,33 @@ class BlockActivity : Activity() {
             LinearLayout.LayoutParams(-1, -2)
         )
 
+        box.addView(
+            Button(this).apply {
+                text = "Back to Home"
+                isAllCaps = false
+                setOnClickListener {
+                    goHome()
+                }
+            },
+            LinearLayout.LayoutParams(-1, -2).apply {
+                topMargin = 36
+            }
+        )
+
         setContentView(box)
+    }
+
+    private fun goHome() {
+        startActivity(
+            Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_HOME)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+        finishAndRemoveTask()
     }
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        moveTaskToBack(true)
+        goHome()
     }
 }

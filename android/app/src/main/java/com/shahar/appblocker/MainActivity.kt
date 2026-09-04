@@ -50,6 +50,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        BlockActivity.closeActive()
         window.statusBarColor = bg
         window.navigationBarColor = bg
         LocalMigration.runOnce(this)
@@ -66,6 +67,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        BlockActivity.closeActive()
         if (::passwords.isInitialized && passwords.hasPassword()) {
             draw()
             Thread {

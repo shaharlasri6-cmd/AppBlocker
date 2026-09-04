@@ -70,3 +70,15 @@
 - AppBlocker permanently excludes its own package from blocking.
 - GitHub Releases remain the only update channel.
 - Android versionCode 20 / versionName 2.0.0.
+
+## v2.0.1
+
+- Fixed the v2.0.0 foreground-app detection regression.
+- AppBlocker's own foreground event can no longer fall back to a stale previously blocked package.
+- Accessibility fallback now expires after five seconds.
+- BLOCKED rules are enforced from both Accessibility events and the local one-second guard loop.
+- Blocking moves the target application to Home before showing the block screen.
+- BlockActivity is isolated from the AppBlocker launcher task.
+- Opening AppBlocker forcibly closes a stale block screen.
+- BlockActivity can never target AppBlocker itself.
+- No website/backend/server components were restored.

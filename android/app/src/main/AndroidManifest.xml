@@ -14,9 +14,9 @@
         <activity
             android:name=".BlockActivity"
             android:excludeFromRecents="true"
-            android:launchMode="singleTask"
+            android:launchMode="standard"
             android:noHistory="true"
-            android:taskAffinity="${applicationId}.block"
+            android:taskAffinity=""
             android:theme="@style/Theme.AppBlocker.Block"/>
 
         <activity
