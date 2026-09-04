@@ -1,4 +1,4 @@
 <resources>
-    <string name="github_owner">__GITHUB_OWNER__</string>
+    <string name="github_owner">shaharlasri6-cmd</string>
     <string name="github_repo">AppBlocker</string>
 </resources>
