@@ -33,3 +33,9 @@
 - Added publish-github-release.sh for future releases.
 - GitHub CI reuses the existing local Android debug signing key so the first GitHub build can update the already-installed app without uninstalling it.
 - Android versionCode 9 / versionName 1.3.0.
+
+## v1.3.1
+- Fixed GitHub Actions Android SDK setup failure (exit code 127 / sdkmanager not found).
+- Added android-actions/setup-android before installing SDK 35 packages.
+- Updated checkout/setup-java actions to current major versions.
+- Kept existing signing secrets and release flow unchanged.
