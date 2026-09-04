@@ -42,7 +42,7 @@ git config user.email "$OWNER@users.noreply.github.com"
 
 echo "[3/7] Creating GitHub repository if needed..."
 if ! gh repo view "$FULL" >/dev/null 2>&1; then
-  gh repo create "$FULL" --public --description "AppBlocker Android client and self-hosted dashboard" >/dev/null
+  gh repo create "$FULL" --public --description "AppBlocker local Android application blocker" >/dev/null
 fi
 if git remote get-url origin >/dev/null 2>&1; then
   git remote set-url origin "https://github.com/$FULL.git"

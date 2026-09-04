@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Device Protection Configuration and Application Usage Management Service</string>
-    <string name="accessibility_desc">Detects foreground applications to enforce blocking policies configured from your dashboard.</string>
+    <string name="accessibility_desc">Detects foreground applications and enforces blocking rules stored locally on this phone.</string>
 </resources>

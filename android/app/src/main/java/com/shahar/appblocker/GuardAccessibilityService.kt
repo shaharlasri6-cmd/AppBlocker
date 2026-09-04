@@ -14,6 +14,7 @@ class GuardAccessibilityService : AccessibilityService() {
     private lateinit var store: PolicyStore
     private lateinit var ledger: UsageLedger
     private val handler = Handler(Looper.getMainLooper())
+
     private var accessibilityPkg: String? = null
     private var lastTick = 0L
     private var blockShownFor: String? = null
@@ -21,7 +22,7 @@ class GuardAccessibilityService : AccessibilityService() {
     private val ticker = object : Runnable {
         override fun run() {
             tick()
-            handler.postDelayed(this, 1000)
+            handler.postDelayed(this, 1000L)
         }
     }
 
@@ -39,21 +40,26 @@ class GuardAccessibilityService : AccessibilityService() {
     private fun foregroundFromUsageEvents(): String? {
         if (!AppChecks.usageAccess(this)) return null
         return try {
-            val usm = getSystemService(UsageStatsManager::class.java)
+            val manager = getSystemService(UsageStatsManager::class.java)
             val end = System.currentTimeMillis()
-            val events = usm.queryEvents(end - 15_000L, end + 250L)
-            val e = UsageEvents.Event()
+            val events = manager.queryEvents(end - 15_000L, end + 250L)
+            val event = UsageEvents.Event()
             var candidate: String? = null
+
             while (events.hasNextEvent()) {
-                events.getNextEvent(e)
+                events.getNextEvent(event)
                 val foreground =
-                    e.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND ||
-                    (Build.VERSION.SDK_INT >= 29 &&
-                        e.eventType == UsageEvents.Event.ACTIVITY_RESUMED)
-                if (foreground && !e.packageName.isNullOrBlank()) {
-                    candidate = e.packageName
+                    event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND ||
+                        (
+                            Build.VERSION.SDK_INT >= 29 &&
+                                event.eventType == UsageEvents.Event.ACTIVITY_RESUMED
+                            )
+
+                if (foreground && !event.packageName.isNullOrBlank()) {
+                    candidate = event.packageName
                 }
             }
+
             candidate?.takeUnless(::ignored)
         } catch (_: Exception) {
             null
@@ -61,14 +67,18 @@ class GuardAccessibilityService : AccessibilityService() {
     }
 
     private fun activePackage(): String? =
-        foregroundFromUsageEvents() ?: accessibilityPkg?.takeUnless(::ignored)
+        foregroundFromUsageEvents()
+            ?: accessibilityPkg?.takeUnless(::ignored)
 
     private fun tick() {
         val nowElapsed = SystemClock.elapsedRealtime()
-        val elapsedSec = ((nowElapsed - lastTick) / 1000L).coerceIn(0L, 3L)
+        val elapsedSeconds =
+            ((nowElapsed - lastTick) / 1000L).coerceIn(0L, 3L)
         lastTick = nowElapsed
 
         val pkg = activePackage() ?: return
+        if (ignored(pkg)) return
+
         val rule = store.rule(pkg)
 
         if (rule.mode == "BLOCKED") {
@@ -76,13 +86,21 @@ class GuardAccessibilityService : AccessibilityService() {
             return
         }
 
-        if (rule.mode != "TIME_LIMITED" || rule.window <= 0 || rule.allowance <= 0) {
+        if (
+            rule.mode != "TIME_LIMITED" ||
+            rule.window <= 0 ||
+            rule.allowance <= 0
+        ) {
             blockShownFor = null
             return
         }
 
-        val windowStart = ledger.windowStart(store.serverNow(), rule.window)
-        if (elapsedSec > 0) ledger.add(pkg, windowStart, elapsedSec)
+        val windowStart =
+            ledger.windowStart(store.serverNow(), rule.window)
+
+        if (elapsedSeconds > 0) {
+            ledger.add(pkg, windowStart, elapsedSeconds)
+        }
 
         val used = ledger.seconds(pkg, windowStart)
         val remaining = rule.allowance * 60L - used
@@ -104,7 +122,7 @@ class GuardAccessibilityService : AccessibilityService() {
             store.settings()
         )
 
-        if (remaining <= 0) {
+        if (remaining <= 0L) {
             showBlock(pkg, "time")
         } else if (blockShownFor == "$pkg:time") {
             blockShownFor = null
@@ -116,9 +134,8 @@ class GuardAccessibilityService : AccessibilityService() {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
         val pkg = event.packageName?.toString() ?: return
-        if (pkg == packageName) return
 
-        if (pkg == "com.android.systemui") {
+        if (ignored(pkg)) {
             accessibilityPkg = null
             blockShownFor = null
             return
@@ -127,35 +144,48 @@ class GuardAccessibilityService : AccessibilityService() {
         accessibilityPkg = pkg
         blockShownFor = null
 
-        val rule = store.rule(pkg)
-        when (rule.mode) {
-            "BLOCKED" -> showBlock(pkg, "general")
-            "TIME_LIMITED" -> {
-                if (rule.window <= 0 || rule.allowance <= 0) return
-                val ws = ledger.windowStart(store.serverNow(), rule.window)
-                val remaining = rule.allowance * 60L - ledger.seconds(pkg, ws)
-                if (remaining <= 0) showBlock(pkg, "time")
+        when (val rule = store.rule(pkg)) {
+            is Rule -> {
+                when (rule.mode) {
+                    "BLOCKED" -> showBlock(pkg, "general")
+                    "TIME_LIMITED" -> {
+                        if (rule.window <= 0 || rule.allowance <= 0) return
+                        val start =
+                            ledger.windowStart(store.serverNow(), rule.window)
+                        val remaining =
+                            rule.allowance * 60L - ledger.seconds(pkg, start)
+                        if (remaining <= 0L) {
+                            showBlock(pkg, "time")
+                        }
+                    }
+                }
             }
         }
     }
 
     private fun showBlock(pkg: String, reason: String) {
+        if (ignored(pkg)) {
+            blockShownFor = null
+            return
+        }
+
         val marker = "$pkg:$reason"
         if (blockShownFor == marker) return
         blockShownFor = marker
+
         startActivity(
             Intent(this, BlockActivity::class.java)
                 .addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
                 )
                 .putExtra("pkg", pkg)
                 .putExtra("reason", reason)
         )
     }
 
-    override fun onInterrupt() {}
+    override fun onInterrupt() = Unit
 
     override fun onDestroy() {
         handler.removeCallbacks(ticker)

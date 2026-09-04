@@ -41,6 +41,6 @@ fi
 echo "sdk.dir=$SDK" > "$ROOT/android/local.properties"
 echo "[5/5] Building APK..."
 (cd "$ROOT/android" && "$GRADLE_HOME/bin/gradle" --no-daemon clean assembleDebug)
-cp "$ROOT/android/app/build/outputs/apk/debug/app-debug.apk" "$ROOT/release/AppBlocker-v1.3.2-debug.apk"
+cp "$ROOT/android/app/build/outputs/apk/debug/app-debug.apk" "$ROOT/release/AppBlocker-v2.0.0-debug.apk"
 echo ""
-echo "APK ready: $ROOT/release/AppBlocker-v1.3.2-debug.apk"
+echo "APK ready: $ROOT/release/AppBlocker-v2.0.0-debug.apk"

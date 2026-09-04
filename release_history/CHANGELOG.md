@@ -54,3 +54,19 @@
 - The phone status page now shows whether notification permission is enabled.
 - Notification permission problems are reported in the dashboard protection log.
 - Android versionCode 11 / versionName 1.3.2.
+
+## v2.0.0
+
+- Removed the web dashboard completely.
+- Removed the Python backend, SQLite server database, pairing, device tokens and heartbeat.
+- AppBlocker now works entirely on the Android phone.
+- Added first-run management password creation.
+- Every local configuration change requires the management password.
+- Added local application list with search and optional system-app visibility.
+- Added Unrestricted, Always blocked and Time limited application modes.
+- Added fully local general-block and time-limit images.
+- Added local time-limit warning thresholds.
+- Preserved Accessibility + Usage Access blocking logic.
+- AppBlocker permanently excludes its own package from blocking.
+- GitHub Releases remain the only update channel.
+- Android versionCode 20 / versionName 2.0.0.
